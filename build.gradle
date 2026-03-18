@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly 'org.jetbrains:annotations:23.0.0'
     compileOnly("me.lidan:CaveCrawlers:1.0")
     compileOnly 'io.lumine:Mythic-Dist:5.3.5'
