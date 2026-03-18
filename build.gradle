@@ -28,9 +28,9 @@ dependencies {
     compileOnly 'org.jetbrains:annotations:23.0.0'
     compileOnly("me.lidan:CaveCrawlers:1.0")
     compileOnly 'io.lumine:Mythic-Dist:5.3.5'
-    implementation 'com.github.Revxrsal.Lamp:common:3.3.6'
-    implementation 'com.github.Revxrsal.Lamp:brigadier:3.3.6'
-    implementation 'com.github.Revxrsal.Lamp:bukkit:3.3.6'
+    implementation 'com.github.lidanthedev.Lamp:common:3.3.7'
+    implementation 'com.github.lidanthedev.Lamp:brigadier:3.3.7'
+    implementation 'com.github.lidanthedev.Lamp:bukkit:3.3.7'
 }
 
 compileJava { // Preserve parameter names in the bytecode
