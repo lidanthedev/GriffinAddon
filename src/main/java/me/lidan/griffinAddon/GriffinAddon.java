@@ -24,8 +24,8 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
 
     public static final int BUFFER_SIZE = 1024;
 
-    // this stat doesn't do anything, it's just to demo custom stats
     public static final StatType GRIFFIN_LEVEL = new StatType("Griffin Level", "G", ChatColor.RED, 0, ChatColor.RED);
+    public static final StatType GRIFFIN_LUCK = new StatType("Griffin Luck", "GL", ChatColor.RED, 0, ChatColor.RED);
 
     public static GriffinAddon getInstance() {
         return GriffinAddon.getPlugin(GriffinAddon.class);
@@ -43,6 +43,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
         registerEvents();
 
         CaveCrawlers.getAPI().getStatsAPI().register("GRIFFIN_LEVEL", GRIFFIN_LEVEL);
+        CaveCrawlers.getAPI().getStatsAPI().register("GRIFFIN_LUCK", GRIFFIN_LUCK);
 
         getLogger().info("GriffinAddon has been enabled!");
     }
