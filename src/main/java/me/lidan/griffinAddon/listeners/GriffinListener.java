@@ -6,19 +6,25 @@ import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.cavecrawlers.stats.StatsManager;
+import me.lidan.griffinAddon.GriffinAddon;
 import me.lidan.griffinAddon.abilities.SpadeAbility;
 import me.lidan.griffinAddon.griffin.GriffinManager;
 import me.lidan.griffinAddon.griffin.GriffinProtection;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,5 +107,36 @@ public class GriffinListener implements Listener {
         if (griffinManager.isGriffinMob(entity)) {
             griffinManager.getGriffinProtectionMap().remove(entity.getUniqueId());
         }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerBreakBlock(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        if (player.getGameMode() == GameMode.CREATIVE) return;
+        if (player.getWorld() != griffinManager.getWorld()) return;
+        Block block = event.getBlock();
+        if (block.getType() != Material.SAND) {
+            event.setCancelled(true);
+            return;
+        }
+        event.setCancelled(true);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline() || !(player.getLocation().distanceSquared(block.getLocation()) < 100)) {
+                    return;
+                }
+                player.sendBlockChange(block.getLocation(), Material.BLACK_WOOL.createBlockData());
+            }
+        }.runTaskLater(GriffinAddon.getInstance(), 1);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerDamagedByBlock(EntityDamageByBlockEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof Player player)) return;
+        if (player.getGameMode() == GameMode.CREATIVE) return;
+        if (player.getWorld() != griffinManager.getWorld()) return;
+        event.setCancelled(true);
     }
 }
