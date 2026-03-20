@@ -38,6 +38,7 @@ public class GriffinListener implements Listener {
     private final ConfigMessage GRIFFIN_PROTECTED = ConfigMessage.getMessageOrDefault("griffin_protected", "Mob Protected for %time%");
     private final ConfigMessage GRIFFIN_UNDER_LEVELED = ConfigMessage.getMessageOrDefault("griffin_under_leveled", "This mob is level %griffin_level%. You are level %player_griffin_level%. Use your spade to update your level!");
     private final GriffinManager griffinManager = GriffinManager.getInstance();
+    private final Map<Player, Map<Block,Long>> brokenBlocks = new HashMap<>();
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
