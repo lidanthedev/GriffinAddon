@@ -22,23 +22,6 @@ public class SpadeAbility extends ClickAbility {
 
     @Override
     protected boolean useAbility(PlayerEvent playerEvent) {
-        if (playerEvent instanceof PlayerInteractEvent event) {
-            Player player = event.getPlayer();
-            if (player.getWorld() != griffinManager.getWorld()) {
-                player.sendMessage("§cERROR! You can only use this ability in the griffin world");
-                return false;
-            }
-            Block block = griffinManager.getGriffinBlock(event.getPlayer());
-            if (block == null) return false;
-            if (player.getLocation().distance(block.getLocation()) > range) {
-                block = griffinManager.generateGriffinLocation(player, range);
-                griffinManager.setGriffinBlock(player, block);
-            }
-            BukkitUtils.runCallbackBetweenTwoPoints(player.getEyeLocation(), block.getLocation().add(0.5, 0.5, 0.5), 1, loc -> {
-                player.spawnParticle(Particle.FLAME, loc, 1, 0, 0, 0, 0);
-            });
-            player.sendBlockChange(block.getLocation(), Material.GOLD_BLOCK.createBlockData());
-        }
         return true;
     }
 

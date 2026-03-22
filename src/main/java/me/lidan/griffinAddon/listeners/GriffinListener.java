@@ -34,11 +34,9 @@ import java.util.UUID;
 
 public class GriffinListener implements Listener {
     private static final Logger log = LoggerFactory.getLogger(GriffinListener.class);
-    public static final int BLOCK_DISTANCE = 1000;
     private final ConfigMessage GRIFFIN_PROTECTED = ConfigMessage.getMessageOrDefault("griffin_protected", "Mob Protected for %time%");
     private final ConfigMessage GRIFFIN_UNDER_LEVELED = ConfigMessage.getMessageOrDefault("griffin_under_leveled", "This mob is level %griffin_level%. You are level %player_griffin_level%. Use your spade to update your level!");
     private final GriffinManager griffinManager = GriffinManager.getInstance();
-    private final Map<Player, Map<Block,Long>> brokenBlocks = new HashMap<>();
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
@@ -116,30 +114,8 @@ public class GriffinListener implements Listener {
         Player player = event.getPlayer();
         if (player.getGameMode() == GameMode.CREATIVE) return;
         if (player.getWorld() != griffinManager.getWorld()) return;
-        Block block = event.getBlock();
-        if (block.getType() != Material.SAND) {
-            event.setCancelled(true);
-            return;
-        }
         event.setCancelled(true);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline() || player.getWorld() != griffinManager.getWorld() || !(player.getLocation().distanceSquared(block.getLocation()) < BLOCK_DISTANCE)) {
-                    return;
-                }
-                player.sendBlockChange(block.getLocation(), Material.BLACK_WOOL.createBlockData());
-            }
-        }.runTaskLater(GriffinAddon.getInstance(), 1);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!player.isOnline() || player.getWorld() != griffinManager.getWorld() || !(player.getLocation().distanceSquared(block.getLocation()) < BLOCK_DISTANCE)) {
-                    return;
-                }
-                player.sendBlockChange(block.getLocation(), block.getBlockData());
-            }
-        }.runTaskLater(GriffinAddon.getInstance(), 20 * 5);
+        griffinManager.handleBlockBreak(event);
     }
 
     @EventHandler(ignoreCancelled = true)

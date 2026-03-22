@@ -7,6 +7,7 @@ import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.utils.BukkitUtils;
+import me.lidan.cavecrawlers.utils.RandomUtils;
 import me.lidan.griffinAddon.GriffinAddon;
 import me.lidan.griffinAddon.abilities.SpadeAbility;
 import net.md_5.bungee.api.ChatColor;
@@ -16,9 +17,13 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,9 +34,13 @@ import java.util.UUID;
 public class GriffinManager {
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
     public static final int MAX_DISTANCE = 110;
+    public static final double MAX_DISTANCE_SQUARED = Math.pow(MAX_DISTANCE, 2);
     private static final GriffinAddon plugin = GriffinAddon.getInstance();
     public static final String WORLD_NAME = plugin.getConfig().getString("griffin.world", "griffin");
     public static final int DEFAULT_PROTECTION_TIME = 5000;
+    public static final int BLOCK_BREAK_COOLDOWN = 5000;
+    public static final @NotNull BlockData BLACK_WOOL_BLOCK_DATA = Material.BLACK_WOOL.createBlockData();
+    public static final @NotNull BlockData PURPLE_STAINED_GLASS_BLOCK_DATA = Material.PURPLE_STAINED_GLASS.createBlockData();
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
@@ -39,6 +48,7 @@ public class GriffinManager {
     private World world;
     private Location pos1;
     private Location pos2;
+    private final Map<UUID, Map<Location,GriffinBrokenBlockInfo>> brokenBlocks = new HashMap<>();
 
     private GriffinManager() {
         world = Bukkit.getWorld(WORLD_NAME);
@@ -131,10 +141,10 @@ public class GriffinManager {
     }
 
     public void handleGriffinClick(Player player, Block block){
-        if (getGriffinBlock(player).equals(block)){
-            player.sendBlockChange(block.getLocation(), block.getBlockData());
-            handleGriffinBreak(player, block);
-        }
+//        if (getGriffinBlock(player).equals(block)){
+//            player.sendBlockChange(block.getLocation(), block.getBlockData());
+//            handleGriffinBreak(player, block);
+//        }
     }
 
     public static GriffinManager getInstance() {
@@ -170,5 +180,45 @@ public class GriffinManager {
         }
         String level = split[1].split("]")[0];
         return Integer.parseInt(level);
+    }
+
+    public Map<Location, GriffinBrokenBlockInfo> getBrokenBlocksMapOfPlayer(Player player) {
+        return brokenBlocks.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
+    }
+
+    public void handleBlockBreak(BlockBreakEvent event){
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
+        if (block.getType() != Material.SAND && block.getType() != Material.RED_SAND) return;
+        Map<Location, GriffinBrokenBlockInfo> brokenBlocksMapOfPlayer = getBrokenBlocksMapOfPlayer(player);
+        GriffinBrokenBlockInfo brokenBlockInfo = brokenBlocksMapOfPlayer.get(block.getLocation());
+        if (brokenBlocksMapOfPlayer.containsKey(block.getLocation()) && System.currentTimeMillis() - brokenBlockInfo.time() < BLOCK_BREAK_COOLDOWN){
+            sendBlockChange(player, block, brokenBlockInfo.blockData());
+            return;
+        }
+        brokenBlocksMapOfPlayer.put(block.getLocation(), new GriffinBrokenBlockInfo(block.getBlockData(), System.currentTimeMillis()));
+        if (RandomUtils.chanceOf(30)){
+            sendBlockChange(player, block, PURPLE_STAINED_GLASS_BLOCK_DATA);
+        }
+        else {
+            sendBlockChange(player, block, BLACK_WOOL_BLOCK_DATA);
+            sendBlockChange(player, block, block.getBlockData(), 20L * 5);
+        }
+    }
+
+    public void sendBlockChange(Player player, Block block, BlockData blockData) {
+        sendBlockChange(player, block, blockData, 1L);
+    }
+
+    public void sendBlockChange(Player player, Block block, BlockData blockData, long delay) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline() || player.getWorld() != getWorld() || !(player.getLocation().distanceSquared(block.getLocation()) < MAX_DISTANCE_SQUARED)) {
+                    return;
+                }
+                player.sendBlockChange(block.getLocation(), blockData);
+            }
+        }.runTaskLater(GriffinAddon.getInstance(), delay);
     }
 }
