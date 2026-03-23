@@ -1,12 +1,14 @@
 package me.lidan.griffinAddon.griffin;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
-import me.lidan.cavecrawlers.utils.BukkitUtils;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import me.lidan.griffinAddon.GriffinAddon;
 import me.lidan.griffinAddon.abilities.SpadeAbility;
@@ -16,7 +18,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -46,9 +47,15 @@ public class GriffinManager {
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
     private HashMap<UUID, GriffinProtection> griffinProtectionMap = new HashMap<>();
     private World world;
-    private Location pos1;
-    private Location pos2;
     private final Map<UUID, Map<Location,GriffinBrokenBlockInfo>> brokenBlocks = new HashMap<>();
+    private final BiMap<Rarity, Material> rarityToBlockMap = ImmutableBiMap.<Rarity, Material>builder()
+            .put(Rarity.COMMON, Material.WHITE_STAINED_GLASS)
+            .put(Rarity.UNCOMMON, Material.GREEN_STAINED_GLASS)
+            .put(Rarity.RARE, Material.BLUE_STAINED_GLASS)
+            .put(Rarity.EPIC, Material.PURPLE_STAINED_GLASS)
+            .put(Rarity.LEGENDARY, Material.ORANGE_STAINED_GLASS)
+            .put(Rarity.MYTHIC, Material.PINK_STAINED_GLASS)
+            .build();
 
     private GriffinManager() {
         world = Bukkit.getWorld(WORLD_NAME);
@@ -56,70 +63,10 @@ public class GriffinManager {
             log.warn("Griffin world not found, please check your config. value: {}", WORLD_NAME);
             return;
         }
-        pos1 = new Location(world, plugin.getConfig().getDouble("griffin.start-location.x"),
-                plugin.getConfig().getDouble("griffin.start-location.y"),
-                plugin.getConfig().getDouble("griffin.start-location.z"));
-        pos2 = new Location(world, plugin.getConfig().getDouble("griffin.end-location.x"),
-                plugin.getConfig().getDouble("griffin.end-location.y"),
-                plugin.getConfig().getDouble("griffin.end-location.z"));
     }
 
     public void registerDrop(String name, GriffinDrops drops){
         grffinDropsMap.put(Rarity.valueOf(name), drops);
-    }
-
-    public Block getGriffinBlock(Player player) {
-        UUID playerUUID = player.getUniqueId();
-        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(player.getInventory().getItemInMainHand());
-        if (itemInfo == null){
-            return null;
-        }
-        if (!(itemInfo.getAbility() instanceof SpadeAbility)){
-            return null;
-        }
-        Rarity rarity = itemInfo.getRarity();
-        if (rarity == null){
-            return null;
-        }
-        if (rarity.getLevel() > rarityMap.getOrDefault(playerUUID, Rarity.COMMON).getLevel()){
-            rarityMap.put(playerUUID, rarity);
-        }
-        if (!griffinMap.containsKey(playerUUID)) {
-            try{
-                Block block = generateGriffinLocation(player);
-                griffinMap.put(playerUUID, block);
-            }
-            catch (IllegalArgumentException e){
-                return null;
-            }
-        }
-        return griffinMap.get(playerUUID);
-    }
-
-    public void setGriffinBlock(Player player, Block location) {
-        griffinMap.put(player.getUniqueId(), location);
-    }
-
-    public Block generateGriffinLocation(Player player) {
-        return generateGriffinLocation(player, MAX_DISTANCE);
-    }
-
-    public Block generateGriffinLocation(Player player, int distance) {
-        if (world == null) {
-            return null;
-        }
-
-        if (player.getWorld() != world){
-            throw new IllegalArgumentException("Player is not in the correct world");
-        }
-
-        int distanceSquared = distance * distance;
-
-        return BukkitUtils.getRandomBlockFilter(pos1,pos2, res -> {
-            if (player.getLocation().distanceSquared(res.getLocation()) >= distanceSquared) return true;
-
-            return res.getType() != Material.GRASS_BLOCK || res.getRelative(BlockFace.UP).getType() != Material.AIR || res.getRelative(BlockFace.UP, 2).getType() != Material.AIR;
-        });
     }
 
     public void handleGriffinBreak(Player player, Block block){
@@ -140,11 +87,11 @@ public class GriffinManager {
         grffinDropsMap.get(rarity).drop(player, loc);
     }
 
-    public void handleGriffinClick(Player player, Block block){
-//        if (getGriffinBlock(player).equals(block)){
-//            player.sendBlockChange(block.getLocation(), block.getBlockData());
-//            handleGriffinBreak(player, block);
-//        }
+    public boolean handleGriffinClick(Player player, Block block){
+        Rarity rarity = rarityToBlockMap.inverse().get(block.getType());
+        if (rarity == null) return false;
+        player.sendMessage(MiniMessageUtils.miniMessage("<green><bold>Griffin Block Rarity: %s".formatted(rarity.name())));
+        return true;
     }
 
     public static GriffinManager getInstance() {
@@ -190,34 +137,36 @@ public class GriffinManager {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         if (block.getType() != Material.SAND && block.getType() != Material.RED_SAND) return;
+        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(player.getInventory().getItemInMainHand());
+        if (itemInfo == null) return;
         Map<Location, GriffinBrokenBlockInfo> brokenBlocksMapOfPlayer = getBrokenBlocksMapOfPlayer(player);
         GriffinBrokenBlockInfo brokenBlockInfo = brokenBlocksMapOfPlayer.get(block.getLocation());
         if (brokenBlocksMapOfPlayer.containsKey(block.getLocation()) && System.currentTimeMillis() - brokenBlockInfo.time() < BLOCK_BREAK_COOLDOWN){
-            sendBlockChange(player, block, brokenBlockInfo.blockData());
+            changeBlock(player, block, brokenBlockInfo.blockData());
             return;
         }
-        brokenBlocksMapOfPlayer.put(block.getLocation(), new GriffinBrokenBlockInfo(block.getBlockData(), System.currentTimeMillis()));
+        brokenBlocksMapOfPlayer.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
         if (RandomUtils.chanceOf(30)){
-            sendBlockChange(player, block, PURPLE_STAINED_GLASS_BLOCK_DATA);
+            changeBlock(player, block, PURPLE_STAINED_GLASS_BLOCK_DATA);
         }
         else {
-            sendBlockChange(player, block, BLACK_WOOL_BLOCK_DATA);
-            sendBlockChange(player, block, block.getBlockData(), 20L * 5);
+            changeBlock(player, block, BLACK_WOOL_BLOCK_DATA);
+            changeBlock(player, block, block.getBlockData(), 20L * 5);
         }
     }
 
-    public void sendBlockChange(Player player, Block block, BlockData blockData) {
-        sendBlockChange(player, block, blockData, 1L);
+    public void changeBlock(Player player, Block block, BlockData blockData) {
+        changeBlock(player, block, blockData, 1L);
     }
 
-    public void sendBlockChange(Player player, Block block, BlockData blockData, long delay) {
+    public void changeBlock(Player player, Block block, BlockData blockData, long delay) {
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (!player.isOnline() || player.getWorld() != getWorld() || !(player.getLocation().distanceSquared(block.getLocation()) < MAX_DISTANCE_SQUARED)) {
                     return;
                 }
-                player.sendBlockChange(block.getLocation(), blockData);
+                block.setBlockData(blockData);
             }
         }.runTaskLater(GriffinAddon.getInstance(), delay);
     }

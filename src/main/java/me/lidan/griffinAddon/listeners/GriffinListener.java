@@ -18,6 +18,7 @@ import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
@@ -41,13 +42,7 @@ public class GriffinListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBlockDamage(BlockDamageEvent event) {
         Player player = event.getPlayer();
-        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(player.getInventory().getItemInMainHand());
-        if (itemInfo == null) {
-            return;
-        }
-        if (itemInfo.getAbility() instanceof SpadeAbility) {
-            griffinManager.handleGriffinClick(player, event.getBlock());
-        }
+        griffinManager.handleGriffinClick(player, event.getBlock());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -109,7 +104,7 @@ public class GriffinListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     public void onPlayerBreakBlock(BlockBreakEvent event) {
         Player player = event.getPlayer();
         if (player.getGameMode() == GameMode.CREATIVE) return;
