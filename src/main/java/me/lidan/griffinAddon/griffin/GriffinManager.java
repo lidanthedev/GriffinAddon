@@ -42,19 +42,20 @@ public class GriffinManager {
     public static final int BLOCK_BREAK_COOLDOWN = 5000;
     public static final @NotNull BlockData BLACK_WOOL_BLOCK_DATA = Material.BLACK_WOOL.createBlockData();
     public static final @NotNull BlockData PURPLE_STAINED_GLASS_BLOCK_DATA = Material.PURPLE_STAINED_GLASS.createBlockData();
+    public static final int BLOCK_REMOVAL_TIMEOUT = 60000;
     private static GriffinManager instance;
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
     private HashMap<UUID, GriffinProtection> griffinProtectionMap = new HashMap<>();
     private World world;
-    private final Map<UUID, Map<Location,GriffinBrokenBlockInfo>> brokenBlocks = new HashMap<>();
-    private final BiMap<Rarity, Material> rarityToBlockMap = ImmutableBiMap.<Rarity, Material>builder()
-            .put(Rarity.COMMON, Material.WHITE_STAINED_GLASS)
-            .put(Rarity.UNCOMMON, Material.GREEN_STAINED_GLASS)
-            .put(Rarity.RARE, Material.BLUE_STAINED_GLASS)
-            .put(Rarity.EPIC, Material.PURPLE_STAINED_GLASS)
-            .put(Rarity.LEGENDARY, Material.ORANGE_STAINED_GLASS)
-            .put(Rarity.MYTHIC, Material.PINK_STAINED_GLASS)
+    private final Map<Location,GriffinBrokenBlockInfo> brokenBlocks = new HashMap<>();
+    private final BiMap<Rarity, BlockData> rarityToBlockMap = ImmutableBiMap.<Rarity, BlockData>builder()
+            .put(Rarity.COMMON, Material.WHITE_STAINED_GLASS.createBlockData())
+            .put(Rarity.UNCOMMON, Material.GREEN_STAINED_GLASS.createBlockData())
+            .put(Rarity.RARE, Material.BLUE_STAINED_GLASS.createBlockData())
+            .put(Rarity.EPIC, Material.PURPLE_STAINED_GLASS.createBlockData())
+            .put(Rarity.LEGENDARY, Material.ORANGE_STAINED_GLASS.createBlockData())
+            .put(Rarity.MYTHIC, Material.PINK_STAINED_GLASS.createBlockData())
             .build();
 
     private GriffinManager() {
@@ -69,22 +70,30 @@ public class GriffinManager {
         grffinDropsMap.put(Rarity.valueOf(name), drops);
     }
 
-    public void handleGriffinBreak(Player player, Block block){
+    public boolean handleGriffinBreak(Player player, Block block){
+        Location loc = block.getLocation();
         griffinMap.remove(player.getUniqueId());
-        ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStackSafe(player.getInventory().getItemInMainHand());
-        if (itemInfo == null){
-            return;
+        Rarity rarity = rarityToBlockMap.inverse().get(block.getBlockData());
+        if (rarity == null) return false;
+        Location dropLoc = block.getLocation().add(0,2,0);
+        GriffinBrokenBlockInfo removedBlockInfo = brokenBlocks.get(loc);
+        if (removedBlockInfo != null) {
+            // if you are not the player with the data, you need to wait 1 minute before you can break the block
+            if (removedBlockInfo.player().getUniqueId() != player.getUniqueId() && System.currentTimeMillis() < removedBlockInfo.time() + BLOCK_REMOVAL_TIMEOUT) {
+                player.sendMessage(MiniMessageUtils.miniMessage("<red><bold>You cannot break this block right now!"));
+                return false;
+            }
+            loc.getBlock().setBlockData(removedBlockInfo.blockData());
+            brokenBlocks.remove(loc);
         }
-        if (!(itemInfo.getAbility() instanceof SpadeAbility)){
-            return;
+        else {
+            loc.getBlock().setType(Material.SAND);
         }
-        Rarity rarity = itemInfo.getRarity();
-        Location loc = block.getLocation().add(0,2,0);
 
-
-        if (rarity == null) return;
-
-        grffinDropsMap.get(rarity).drop(player, loc);
+        GriffinDrops griffinDrops = grffinDropsMap.get(rarity);
+        if (griffinDrops == null) return false;
+        griffinDrops.drop(player, dropLoc);
+        return true;
     }
 
     public boolean handleGriffinClick(Player player, Block block){
@@ -115,11 +124,11 @@ public class GriffinManager {
 
     public boolean isGriffinMob(Entity victim) {
         String name = ChatColor.stripColor(victim.getName());
-        return name.contains("[Level ") && name.contains("]");
+        return name.contains("[Griffin ") && name.contains("]");
     }
 
     public int getGriffinMobLevel(String name) {
-        // griffin mob name appear in this format: [Level 1] Minos Hunter
+        // griffin mob name appear in this format: [Griffin 1] Minos Hunter
         name = ChatColor.stripColor(name);
         String[] split = name.split(" ");
         if (split.length < 2){
@@ -129,25 +138,19 @@ public class GriffinManager {
         return Integer.parseInt(level);
     }
 
-    public Map<Location, GriffinBrokenBlockInfo> getBrokenBlocksMapOfPlayer(Player player) {
-        return brokenBlocks.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>());
-    }
-
     public void handleBlockBreak(BlockBreakEvent event){
         Player player = event.getPlayer();
         Block block = event.getBlock();
+        Location above = block.getLocation().add(0,1,0);
+        if (above.getBlock().getType() != Material.AIR && above.getBlock().getType() != block.getType()) return;
+        if (handleGriffinBreak(player, block)) return;
         if (block.getType() != Material.SAND && block.getType() != Material.RED_SAND) return;
         ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(player.getInventory().getItemInMainHand());
         if (itemInfo == null) return;
-        Map<Location, GriffinBrokenBlockInfo> brokenBlocksMapOfPlayer = getBrokenBlocksMapOfPlayer(player);
-        GriffinBrokenBlockInfo brokenBlockInfo = brokenBlocksMapOfPlayer.get(block.getLocation());
-        if (brokenBlocksMapOfPlayer.containsKey(block.getLocation()) && System.currentTimeMillis() - brokenBlockInfo.time() < BLOCK_BREAK_COOLDOWN){
-            changeBlock(player, block, brokenBlockInfo.blockData());
-            return;
-        }
-        brokenBlocksMapOfPlayer.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
-        if (RandomUtils.chanceOf(30)){
-            changeBlock(player, block, PURPLE_STAINED_GLASS_BLOCK_DATA);
+        Rarity rarity = itemInfo.getRarity();
+        brokenBlocks.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
+        if (RandomUtils.chanceOf(1)){
+            changeBlock(player, block, rarityToBlockMap.get(rarity));
         }
         else {
             changeBlock(player, block, BLACK_WOOL_BLOCK_DATA);
@@ -169,5 +172,15 @@ public class GriffinManager {
                 block.setBlockData(blockData);
             }
         }.runTaskLater(GriffinAddon.getInstance(), delay);
+    }
+
+    public void cleanup(){
+        for (Map.Entry<Location, GriffinBrokenBlockInfo> locationGriffinBrokenBlockInfoEntry : brokenBlocks.entrySet()) {
+            Location loc = locationGriffinBrokenBlockInfoEntry.getKey();
+            GriffinBrokenBlockInfo removedBlockInfo = locationGriffinBrokenBlockInfoEntry.getValue();
+            if (removedBlockInfo == null) continue;
+            loc.getBlock().setBlockData(removedBlockInfo.blockData());
+        }
+        brokenBlocks.clear();
     }
 }

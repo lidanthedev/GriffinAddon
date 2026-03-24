@@ -9,6 +9,7 @@ import me.lidan.cavecrawlers.drops.DropType;
 import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.entities.LootShareEntityData;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
+import me.lidan.griffinAddon.GriffinAddon;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
@@ -31,6 +32,7 @@ public class GriffinDrop extends Drop implements ConfigurationSerializable {
 
     public GriffinDrop(String type, double chance, String value, ConfigMessage announce) {
         super(type, chance, value, announce);
+        setChanceModifier(GriffinAddon.GRIFFIN_LUCK);
         if (announce == null) {
             if (this.type == DropType.COINS) {
                 this.announce = COINS_MESSAGE;

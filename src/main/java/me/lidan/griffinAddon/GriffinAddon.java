@@ -6,6 +6,7 @@ import me.lidan.griffinAddon.abilities.SpadeAbility;
 import me.lidan.griffinAddon.griffin.GriffinCommand;
 import me.lidan.griffinAddon.griffin.GriffinDrop;
 import me.lidan.griffinAddon.griffin.GriffinDrops;
+import me.lidan.griffinAddon.griffin.GriffinManager;
 import me.lidan.griffinAddon.listeners.GriffinListener;
 import me.lidan.griffinAddon.loaders.GriffinLoader;
 import net.md_5.bungee.api.ChatColor;
@@ -102,6 +103,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
     public void onDisable() {
         // Plugin shutdown logic
         Bukkit.getScheduler().cancelTasks(this);
+        GriffinManager.getInstance().cleanup();
     }
 
     /**
