@@ -4,10 +4,14 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.integration.MythicMobsHook;
 import me.lidan.cavecrawlers.items.ItemInfo;
 import me.lidan.cavecrawlers.items.ItemsManager;
 import me.lidan.cavecrawlers.items.Rarity;
+import me.lidan.cavecrawlers.stats.Stat;
+import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.stats.Stats;
 import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import me.lidan.griffinAddon.GriffinAddon;
@@ -147,14 +151,15 @@ public class GriffinManager {
         if (block.getType() != Material.SAND && block.getType() != Material.RED_SAND) return;
         ItemInfo itemInfo = ItemsManager.getInstance().getItemFromItemStack(player.getInventory().getItemInMainHand());
         if (itemInfo == null) return;
+        if (!(itemInfo.getAbility() instanceof SpadeAbility)) return;
         Rarity rarity = itemInfo.getRarity();
         brokenBlocks.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
-        if (RandomUtils.chanceOf(1)){
+        if (RandomUtils.chanceOf(getNewDropChance(player, 1, GriffinAddon.GRIFFIN_LUCK))){
             changeBlock(player, block, rarityToBlockMap.get(rarity));
         }
         else {
             changeBlock(player, block, BLACK_WOOL_BLOCK_DATA);
-            changeBlock(player, block, block.getBlockData(), 20L * 5);
+            changeBlock(player, block, block.getBlockData(), 20L * 2);
         }
     }
 
@@ -172,6 +177,15 @@ public class GriffinManager {
                 block.setBlockData(blockData);
             }
         }.runTaskLater(GriffinAddon.getInstance(), delay);
+    }
+
+    private double getNewDropChance(Player player, double chance, StatType chanceModifier) {
+        if (chanceModifier == null) {
+            return chance;
+        }
+        Stats stats = CaveCrawlers.getAPI().getStatsAPI().getStats(player);
+        Stat magicFind = stats.get(chanceModifier);
+        return chance * (1 + magicFind.getValue() / 100);
     }
 
     public void cleanup(){
