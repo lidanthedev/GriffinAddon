@@ -101,13 +101,6 @@ public class GriffinManager {
         return true;
     }
 
-    public boolean handleGriffinClick(Player player, Block block) {
-        Rarity rarity = rarityToBlockMap.inverse().get(block.getType());
-        if (rarity == null) return false;
-        player.sendMessage(MiniMessageUtils.miniMessage("<green><bold>Griffin Block Rarity: %s".formatted(rarity.name())));
-        return true;
-    }
-
     public boolean isGriffinMob(Entity victim) {
         String name = ChatColor.stripColor(victim.getName());
         return name.contains("[Griffin ") && name.contains("]");
