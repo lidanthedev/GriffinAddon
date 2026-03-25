@@ -1,36 +1,23 @@
 package me.lidan.griffinAddon.listeners;
 
 import io.lumine.mythic.bukkit.events.MythicMobDespawnEvent;
-import me.lidan.cavecrawlers.items.ItemInfo;
-import me.lidan.cavecrawlers.items.ItemsManager;
-import me.lidan.cavecrawlers.items.Rarity;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
-import me.lidan.cavecrawlers.stats.StatsManager;
-import me.lidan.griffinAddon.GriffinAddon;
-import me.lidan.griffinAddon.abilities.SpadeAbility;
 import me.lidan.griffinAddon.griffin.GriffinManager;
 import me.lidan.griffinAddon.griffin.GriffinProtection;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class GriffinListener implements Listener {
@@ -49,51 +36,6 @@ public class GriffinListener implements Listener {
     public void onEntityDeath(EntityDeathEvent event) {
         HashMap<UUID, GriffinProtection> griffinProtectionMap = griffinManager.getGriffinProtectionMap();
         griffinProtectionMap.remove(event.getEntity().getUniqueId());
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        Entity attacker = event.getDamager();
-        ;
-        if (attacker instanceof Projectile projectile) {
-            attacker = (Entity) projectile.getShooter();
-        }
-        Entity victim = event.getEntity();
-        if (attacker instanceof Player player && victim instanceof Mob mob) {
-            protectGriffinMobs(event, player, mob);
-        } else if (victim instanceof Player player && attacker instanceof Mob mob) {
-            protectGriffinMobs(event, player, mob);
-        }
-    }
-
-    private void protectGriffinMobs(EntityDamageByEntityEvent event, Player player, Mob mob) {
-        if (player.getGameMode() == GameMode.CREATIVE) return;
-        if (!griffinManager.isGriffinMob(mob)) return;
-        Rarity rarity = griffinManager.getRarityMap().getOrDefault(player.getUniqueId(), Rarity.COMMON);
-        int level = griffinManager.getGriffinMobLevel(mob.getName());
-        if (level > rarity.getLevel()) {
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("griffin_level", String.valueOf(level));
-            placeholders.put("player_griffin_level", String.valueOf(rarity.getLevel()));
-            GRIFFIN_UNDER_LEVELED.sendMessage(player, placeholders);
-            event.setDamage(0);
-            event.setCancelled(true);
-            mob.setTarget(null);
-            StatsManager.healPlayerPercent(player, 100);
-            return;
-        }
-        GriffinProtection griffinProtection = griffinManager.getGriffinProtectionMap().get(mob.getUniqueId());
-        long currentTime = System.currentTimeMillis();
-        if (griffinProtection != null && !griffinProtection.isSummoner(player.getUniqueId()) && griffinProtection.isProtected(currentTime)) {
-            double diff = griffinProtection.getRemainingProtectionTime(currentTime) / 1000.0;
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("time", String.valueOf(diff));
-            GRIFFIN_PROTECTED.sendMessage(player, placeholders);
-            event.setDamage(0);
-            event.setCancelled(true);
-            mob.setTarget(null);
-            StatsManager.healPlayerPercent(player, 100);
-        }
     }
 
     @EventHandler(ignoreCancelled = true)
