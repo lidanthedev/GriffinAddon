@@ -32,7 +32,9 @@ public class GriffinDrop extends Drop implements ConfigurationSerializable {
 
     public GriffinDrop(String type, double chance, String value, ConfigMessage announce) {
         super(type, chance, value, announce);
-        setChanceModifier(GriffinAddon.GRIFFIN_LUCK);
+        if (chance < 10) {
+            setChanceModifier(GriffinAddon.GRIFFIN_LUCK);
+        }
         if (announce == null) {
             if (this.type == DropType.COINS) {
                 this.announce = COINS_MESSAGE;
