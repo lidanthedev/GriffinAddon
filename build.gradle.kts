@@ -29,6 +29,7 @@ dependencies {
     implementation("com.github.lidanthedev.Lamp:common:3.3.7")
     implementation("com.github.lidanthedev.Lamp:brigadier:3.3.7")
     implementation("com.github.lidanthedev.Lamp:bukkit:3.3.7")
+    implementation("fr.skytasul:glowingentities:1.4.10")
 }
 
 val targetJavaVersion = 21
@@ -58,6 +59,7 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.shadowJar {
     archiveClassifier.set("")
     relocate("revxrsal.commands", "me.lidan.griffinAddon.lamp")
+    relocate("com.github.Xezard.XGlow", "me.lidan.griffinAddon.xglow")
 }
 
 tasks.jar {

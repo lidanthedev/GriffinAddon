@@ -1,5 +1,7 @@
 package me.lidan.griffinAddon;
 
+import fr.skytasul.glowingentities.GlowingEntities;
+import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.StatType;
 import me.lidan.griffinAddon.abilities.SpadeAbility;
@@ -27,6 +29,8 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
 
     public static final StatType GRIFFIN_LEVEL = new StatType("Griffin Level", "G", ChatColor.RED, 0, ChatColor.RED);
     public static final StatType GRIFFIN_LUCK = new StatType("Griffin Luck", "GL", ChatColor.RED, 0, ChatColor.RED);
+    @Getter
+    private GlowingEntities glowingEntities;
 
     public static GriffinAddon getInstance() {
         return GriffinAddon.getPlugin(GriffinAddon.class);
@@ -35,6 +39,8 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // Plugin startup logic
+
+        glowingEntities = new GlowingEntities(this);
 
         saveDefaultResources();
         registerSerializers();
@@ -104,6 +110,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
         // Plugin shutdown logic
         Bukkit.getScheduler().cancelTasks(this);
         GriffinManager.getInstance().cleanup();
+        glowingEntities.disable();
     }
 
     /**
