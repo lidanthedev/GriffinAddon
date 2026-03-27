@@ -39,7 +39,7 @@ public class GriffinCommand {
             if (!entity.isDead()) {
                 for (Player player : entity.getWorld().getPlayers()) {
                     try {
-                        glowingEntities.setGlowing(entity.getEntityId(), "teamteamteam", player, ChatColor.YELLOW);
+                        glowingEntities.setGlowing(entity, player, ChatColor.YELLOW);
                     } catch (ReflectiveOperationException e) {
                         throw new RuntimeException(e);
                     }
