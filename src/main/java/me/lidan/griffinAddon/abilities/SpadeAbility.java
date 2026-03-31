@@ -34,7 +34,7 @@ public class SpadeAbility extends ClickAbility {
 
     @Override
     public String getDescription() {
-        return "Increase your chance to find treasure by " + ChatColor.GREEN + amount + "%";
+        return "Increase your chance to find treasure by " + ChatColor.GREEN + amount + "%" + ChatColor.GRAY + " for " + ChatColor.GREEN + activeTime / 1000 + " seconds";
     }
 
     @Override
@@ -62,7 +62,6 @@ public class SpadeAbility extends ClickAbility {
     public void onStatsUpdate(StatsCalculateEvent event){
         Player player = event.getPlayer();
         Stats stats = event.getStats();
-        // active for 10 seconds from the last activation
         if (System.currentTimeMillis() - chargeCooldown.getCooldown(player.getUniqueId()) >= activeTime) {
             return;
         }
