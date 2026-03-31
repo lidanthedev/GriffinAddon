@@ -137,6 +137,9 @@ public class GriffinManager {
             changeBlock(player, block, block.getBlockData(), 20L * 2);
         }
         CaveCrawlers.getAPI().getSkillsAPI().tryGiveXp(SkillAction.MINE, block.getType().toString(), player);
+        ItemInfo sandDust = CaveCrawlers.getAPI().getItemsAPI().getItemByID("SAND_DUST");
+        if (sandDust == null) return;
+        CaveCrawlers.getAPI().getItemsAPI().giveItem(player, sandDust, 1);
     }
 
     public void changeBlock(Player player, Block block, BlockData blockData) {
