@@ -34,12 +34,12 @@ public class GriffinCommand {
     }
 
     @Subcommand("glow")
-    public void glow(CommandSender sender, EntitySelector<Entity> entitySelector) {
+    public void glow(CommandSender sender, EntitySelector<Entity> entitySelector, @Default("WHITE") ChatColor color) {
         for (Entity entity : entitySelector) {
             if (!entity.isDead()) {
                 for (Player player : entity.getWorld().getPlayers()) {
                     try {
-                        glowingEntities.setGlowing(entity, player, ChatColor.YELLOW);
+                        glowingEntities.setGlowing(entity, player, color);
                     } catch (ReflectiveOperationException e) {
                         throw new RuntimeException(e);
                     }
