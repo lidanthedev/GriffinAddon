@@ -86,7 +86,8 @@ public class GriffinManager {
         if (removedBlockInfo != null) {
             // if you are not the player with the data, you need to wait 1 minute before you can break the block
             if (removedBlockInfo.player().getUniqueId() != player.getUniqueId() && System.currentTimeMillis() < removedBlockInfo.time() + BLOCK_REMOVAL_TIMEOUT) {
-                player.sendMessage(MiniMessageUtils.miniMessage("<red><bold>You cannot break this block right now!"));
+                long remainingTime = removedBlockInfo.time() + BLOCK_REMOVAL_TIMEOUT - System.currentTimeMillis();
+                player.sendMessage(MiniMessageUtils.miniMessage("<red><bold>You cannot break this block now! </bold><gold>try again in <remaining_seconds> seconds!", Map.of("remaining_seconds", remainingTime / 1000)));
                 return false;
             }
             loc.getBlock().setBlockData(removedBlockInfo.blockData());
