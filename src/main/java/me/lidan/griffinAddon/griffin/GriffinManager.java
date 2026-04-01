@@ -129,7 +129,12 @@ public class GriffinManager {
         if (!(itemInfo.getAbility() instanceof SpadeAbility)) return;
         Rarity rarity = itemInfo.getRarity();
         brokenBlocks.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
-        if (RandomUtils.chanceOf(getNewDropChance(player, 1, GriffinAddon.GRIFFIN_LUCK))) {
+        double baseChance = 1;
+        if (block.getType() == Material.RED_SAND && rarity.getLevel() >= Rarity.RARE.getLevel()) {
+            baseChance = 2;
+        }
+        double newDropChance = getNewDropChance(player, baseChance, GriffinAddon.GRIFFIN_LUCK);
+        if (RandomUtils.chanceOf(newDropChance)) {
             changeBlock(player, block, rarityToBlockMap.get(rarity));
             player.playSound(player, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1, 2);
         } else {
