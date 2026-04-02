@@ -34,6 +34,7 @@ public class GriffinCommand {
     }
 
     @Subcommand("glow")
+    @CommandPermission("griffin.command.glow")
     public void glow(CommandSender sender, EntitySelector<Entity> entitySelector, @Default("WHITE") ChatColor color) {
         for (Entity entity : entitySelector) {
             if (!entity.isDead()) {
