@@ -15,12 +15,16 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import java.util.Locale;
+
 public class PullAbility extends ClickAbility {
     private int pullDurationTicks = 60;
     private int maxRange = 30;
     private double pullRadius = 7.0;
     private double pullStrength = 0.18;
     private double maxPullSpeed = 1.2;
+    private Particle centerParticle = Particle.PORTAL;
+    private Particle entityParticle = Particle.ENCHANT;
 
     public PullAbility() {
         super("Pull", "Pulls entities in §a%range%§7 radius towards clicked block for §a%duration_s%§7 seconds", 100, 10000);
@@ -58,7 +62,7 @@ public class PullAbility extends ClickAbility {
                 }
 
                 player.getWorld().spawnParticle(
-                        Particle.PORTAL,
+                        centerParticle,
                         pullCenter,
                         24,
                         pullRadius * 0.3,
@@ -89,7 +93,7 @@ public class PullAbility extends ClickAbility {
                     }
 
                     entity.setVelocity(pullVelocity);
-                    player.getWorld().spawnParticle(Particle.ENCHANT, entity.getLocation().add(0, 1, 0), 4, 0.15, 0.15, 0.15, 0);
+                    player.getWorld().spawnParticle(entityParticle, entity.getLocation().add(0, 1, 0), 4, 0.15, 0.15, 0.15, 0);
                 }
 
                 elapsedTicks++;
@@ -117,6 +121,27 @@ public class PullAbility extends ClickAbility {
         if (map.has("maxPullSpeed")) {
             ability.maxPullSpeed = map.get("maxPullSpeed").getAsDouble();
         }
+        if (map.has("particle")) {
+            ability.centerParticle = readParticle(map.get("particle").getAsString(), ability.centerParticle);
+        }
+        if (map.has("centerParticle")) {
+            ability.centerParticle = readParticle(map.get("centerParticle").getAsString(), ability.centerParticle);
+        }
+        if (map.has("entityParticle")) {
+            ability.entityParticle = readParticle(map.get("entityParticle").getAsString(), ability.entityParticle);
+        }
         return ability;
+    }
+
+    private Particle readParticle(String rawParticle, Particle fallback) {
+        if (rawParticle == null || rawParticle.isBlank()) {
+            return fallback;
+        }
+
+        try {
+            return Particle.valueOf(rawParticle.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ignored) {
+            return fallback;
+        }
     }
 }
