@@ -6,6 +6,7 @@ import me.lidan.cavecrawlers.items.abilities.ItemAbility;
 import me.lidan.griffinAddon.GriffinAddon;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -22,7 +23,18 @@ public class PullAbility extends ClickAbility {
     private double maxPullSpeed = 1.2;
 
     public PullAbility() {
-        super("Pull", "Pulls entities towards it", 100, 10000);
+        super("Pull", "Pulls entities in §a%range%§7 radius towards clicked block for §a%duration_s%§7 seconds", 100, 10000);
+    }
+
+    @Override
+    public String getDescription() {
+        return super.getDescription()
+                .replace("%duration%", String.valueOf(pullDurationTicks))
+                .replace("%duration_s%", String.valueOf(pullDurationTicks/20))
+                .replace("%range%", String.valueOf(maxRange))
+                .replace("%radius%", String.valueOf(pullRadius))
+                .replace("%strength%", String.valueOf(pullStrength))
+                .replace("%speed%", String.valueOf(maxPullSpeed));
     }
 
     @Override
@@ -44,6 +56,16 @@ public class PullAbility extends ClickAbility {
                     cancel();
                     return;
                 }
+
+                player.getWorld().spawnParticle(
+                        Particle.PORTAL,
+                        pullCenter,
+                        24,
+                        pullRadius * 0.3,
+                        0.25,
+                        pullRadius * 0.3,
+                        0.02
+                );
 
                 for (Entity entity : player.getWorld().getNearbyEntities(
                         pullCenter,
@@ -67,6 +89,7 @@ public class PullAbility extends ClickAbility {
                     }
 
                     entity.setVelocity(pullVelocity);
+                    player.getWorld().spawnParticle(Particle.ENCHANT, entity.getLocation().add(0, 1, 0), 4, 0.15, 0.15, 0.15, 0);
                 }
 
                 elapsedTicks++;
