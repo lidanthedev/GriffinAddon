@@ -4,6 +4,7 @@ import fr.skytasul.glowingentities.GlowingEntities;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
 import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.griffinAddon.abilities.PullAbility;
 import me.lidan.griffinAddon.abilities.SpadeAbility;
 import me.lidan.griffinAddon.griffin.GriffinCommand;
 import me.lidan.griffinAddon.griffin.GriffinDrop;
@@ -71,6 +72,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
 
     private void registerAbilities() {
         CaveCrawlers.getAPI().getAbilityAPI().registerAbility("SPADE", new SpadeAbility());
+        CaveCrawlers.getAPI().getAbilityAPI().registerAbility("PULL", new PullAbility());
     }
 
     private void registerEvents() {
