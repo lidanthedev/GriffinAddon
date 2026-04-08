@@ -28,8 +28,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
 
     public static final int BUFFER_SIZE = 1024;
 
-    public static final StatType GRIFFIN_LEVEL = new StatType("Griffin Level", "G", ChatColor.RED, 0, ChatColor.RED);
-    public static final StatType GRIFFIN_LUCK = new StatType("Griffin Luck", "GL", ChatColor.RED, 0, ChatColor.RED);
+    public static final StatType GRIFFIN_LUCK = new StatType("Griffin Luck", "☄", ChatColor.GOLD, 0, ChatColor.RED);
     @Getter
     private GlowingEntities glowingEntities;
 
@@ -50,7 +49,6 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
         registerCommands();
         registerEvents();
 
-        CaveCrawlers.getAPI().getStatsAPI().register("GRIFFIN_LEVEL", GRIFFIN_LEVEL);
         CaveCrawlers.getAPI().getStatsAPI().register("GRIFFIN_LUCK", GRIFFIN_LUCK);
 
         getLogger().info("GriffinAddon has been enabled!");
