@@ -115,7 +115,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
     private void registerIndex() {
         try {
             GRIFFIN_INDEX_CATEGORY = IndexCategory.register("GRIFFIN", new IndexCategory("Griffin", ItemBuilder.from(Material.SAND).name(MiniMessageUtils.miniMessage("<gold>Griffin")).asGuiItem(event -> new IndexGriffinCategoryMenu((Player) event.getWhoClicked(), "").open())));
-        } catch (Exception error) {
+        } catch (Exception | NoSuchMethodError error) {
             log.warn("Failed to register index category: {}", error.getMessage());
         }
     }
