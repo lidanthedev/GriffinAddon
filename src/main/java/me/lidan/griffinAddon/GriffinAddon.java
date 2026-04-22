@@ -19,6 +19,8 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
 
 import java.io.File;
@@ -31,7 +33,8 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
     public static final int BUFFER_SIZE = 1024;
 
     public static final StatType GRIFFIN_LUCK = new StatType("Griffin Luck", "☄", ChatColor.GOLD, 0, ChatColor.RED);
-    public static final IndexCategory GRIFFIN_INDEX_CATEGORY = IndexCategory.register("GRIFFIN", new IndexCategory("Griffin", ItemBuilder.from(Material.SAND).name(MiniMessageUtils.miniMessage("<gold>Griffin")).asGuiItem(event -> new IndexGriffinCategoryMenu((Player) event.getWhoClicked(), "").open())));
+    private static final Logger log = LoggerFactory.getLogger(GriffinAddon.class);
+    public static IndexCategory GRIFFIN_INDEX_CATEGORY = null;
     @Getter
     private GlowingEntities glowingEntities;
 
@@ -50,6 +53,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
         registerAbilities();
         registerGriffin();
         registerCommands();
+        registerIndex();
         registerEvents();
 
         CaveCrawlers.getAPI().getStatsAPI().register("GRIFFIN_LUCK", GRIFFIN_LUCK);
@@ -106,6 +110,14 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
      */
     private void registerGriffin() {
         GriffinLoader.getInstance().load();
+    }
+
+    private void registerIndex() {
+        try {
+            GRIFFIN_INDEX_CATEGORY = IndexCategory.register("GRIFFIN", new IndexCategory("Griffin", ItemBuilder.from(Material.SAND).name(MiniMessageUtils.miniMessage("<gold>Griffin")).asGuiItem(event -> new IndexGriffinCategoryMenu((Player) event.getWhoClicked(), "").open())));
+        } catch (Exception error) {
+            log.warn("Failed to register index category: {}", error.getMessage());
+        }
     }
 
     @Override
