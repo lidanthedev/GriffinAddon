@@ -3,18 +3,20 @@ package me.lidan.griffinAddon;
 import fr.skytasul.glowingentities.GlowingEntities;
 import lombok.Getter;
 import me.lidan.cavecrawlers.CaveCrawlers;
+import me.lidan.cavecrawlers.gui.builder.item.ItemBuilder;
+import me.lidan.cavecrawlers.index.IndexCategory;
 import me.lidan.cavecrawlers.stats.StatType;
+import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.griffinAddon.abilities.PullAbility;
 import me.lidan.griffinAddon.abilities.SpadeAbility;
-import me.lidan.griffinAddon.griffin.GriffinCommand;
-import me.lidan.griffinAddon.griffin.GriffinDrop;
-import me.lidan.griffinAddon.griffin.GriffinDrops;
-import me.lidan.griffinAddon.griffin.GriffinManager;
+import me.lidan.griffinAddon.griffin.*;
 import me.lidan.griffinAddon.listeners.GriffinListener;
 import me.lidan.griffinAddon.loaders.GriffinLoader;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import revxrsal.commands.bukkit.BukkitCommandHandler;
@@ -29,6 +31,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
     public static final int BUFFER_SIZE = 1024;
 
     public static final StatType GRIFFIN_LUCK = new StatType("Griffin Luck", "☄", ChatColor.GOLD, 0, ChatColor.RED);
+    public static final IndexCategory GRIFFIN_INDEX_CATEGORY = IndexCategory.register("GRIFFIN", new IndexCategory("Griffin", ItemBuilder.from(Material.SAND).name(MiniMessageUtils.miniMessage("<gold>Griffin")).asGuiItem(event -> new IndexGriffinCategoryMenu((Player) event.getWhoClicked(), "").open())));
     @Getter
     private GlowingEntities glowingEntities;
 

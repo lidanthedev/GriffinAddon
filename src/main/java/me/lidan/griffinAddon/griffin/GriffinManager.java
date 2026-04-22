@@ -32,6 +32,14 @@ import java.util.UUID;
 @Slf4j
 @Data
 public class GriffinManager {
+    public static final BiMap<Rarity, BlockData> RARITY_TO_BLOCK_MAP = ImmutableBiMap.<Rarity, BlockData>builder()
+            .put(Rarity.COMMON, Material.WHITE_STAINED_GLASS.createBlockData())
+            .put(Rarity.UNCOMMON, Material.GREEN_STAINED_GLASS.createBlockData())
+            .put(Rarity.RARE, Material.BLUE_STAINED_GLASS.createBlockData())
+            .put(Rarity.EPIC, Material.PURPLE_STAINED_GLASS.createBlockData())
+            .put(Rarity.LEGENDARY, Material.ORANGE_STAINED_GLASS.createBlockData())
+            .put(Rarity.MYTHIC, Material.PINK_STAINED_GLASS.createBlockData())
+            .build();
     public static final Map<Rarity, GriffinDrops> grffinDropsMap = new HashMap<>();
     public static final int MAX_DISTANCE = 110;
     public static final double MAX_DISTANCE_SQUARED = Math.pow(MAX_DISTANCE, 2);
@@ -44,14 +52,6 @@ public class GriffinManager {
     public static final String WORLD_NAME = plugin.getConfig().getString("griffin.world", "griffin");
     private static GriffinManager instance;
     private final Map<Location, GriffinBrokenBlockInfo> brokenBlocks = new HashMap<>();
-    private final BiMap<Rarity, BlockData> rarityToBlockMap = ImmutableBiMap.<Rarity, BlockData>builder()
-            .put(Rarity.COMMON, Material.WHITE_STAINED_GLASS.createBlockData())
-            .put(Rarity.UNCOMMON, Material.GREEN_STAINED_GLASS.createBlockData())
-            .put(Rarity.RARE, Material.BLUE_STAINED_GLASS.createBlockData())
-            .put(Rarity.EPIC, Material.PURPLE_STAINED_GLASS.createBlockData())
-            .put(Rarity.LEGENDARY, Material.ORANGE_STAINED_GLASS.createBlockData())
-            .put(Rarity.MYTHIC, Material.PINK_STAINED_GLASS.createBlockData())
-            .build();
     private HashMap<UUID, Block> griffinMap = new HashMap<>();
     private HashMap<UUID, Rarity> rarityMap = new HashMap<>();
     private HashMap<UUID, GriffinProtection> griffinProtectionMap = new HashMap<>();
@@ -79,7 +79,7 @@ public class GriffinManager {
     public boolean handleGriffinBreak(Player player, Block block) {
         Location loc = block.getLocation();
         griffinMap.remove(player.getUniqueId());
-        Rarity rarity = rarityToBlockMap.inverse().get(block.getBlockData());
+        Rarity rarity = RARITY_TO_BLOCK_MAP.inverse().get(block.getBlockData());
         if (rarity == null) return false;
         Location dropLoc = block.getLocation().add(0, 2, 0);
         GriffinBrokenBlockInfo removedBlockInfo = brokenBlocks.get(loc);
@@ -136,7 +136,7 @@ public class GriffinManager {
         }
         double newDropChance = getNewDropChance(player, baseChance, GriffinAddon.GRIFFIN_LUCK);
         if (RandomUtils.chanceOf(newDropChance)) {
-            changeBlock(player, block, rarityToBlockMap.get(rarity));
+            changeBlock(player, block, RARITY_TO_BLOCK_MAP.get(rarity));
             player.playSound(player, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1, 2);
         } else {
             changeBlock(player, block, BLACK_WOOL_BLOCK_DATA);

@@ -24,7 +24,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly("org.jetbrains:annotations:23.0.0")
-    compileOnly("me.lidan:CaveCrawlers:1.1") // use the mavenLocal version of CaveCrawlers
+    compileOnly("me.lidan:CaveCrawlers:dev") // use the mavenLocal version of CaveCrawlers
     compileOnly("io.lumine:Mythic-Dist:5.3.5")
     implementation("com.github.lidanthedev.Lamp:common:3.3.7")
     implementation("com.github.lidanthedev.Lamp:brigadier:3.3.7")
