@@ -136,11 +136,11 @@ public class GriffinManager {
         }
         double newDropChance = getNewDropChance(player, baseChance, GriffinAddon.GRIFFIN_LUCK);
         if (RandomUtils.chanceOf(newDropChance)) {
-            changeBlock(player, block, RARITY_TO_BLOCK_MAP.get(rarity));
+            changeBlock(block, RARITY_TO_BLOCK_MAP.get(rarity));
             player.playSound(player, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1, 2);
         } else {
-            changeBlock(player, block, BLACK_WOOL_BLOCK_DATA);
-            changeBlock(player, block, block.getBlockData(), 20L * 2);
+            changeBlock(block, BLACK_WOOL_BLOCK_DATA);
+            changeBlock(block, block.getBlockData(), 20L * 2);
         }
         CaveCrawlers.getAPI().getSkillsAPI().tryGiveXp(SkillAction.MINE, block.getType().toString(), player);
         ItemInfo sandDust = CaveCrawlers.getAPI().getItemsAPI().getItemByID("SAND_DUST");
@@ -148,17 +148,14 @@ public class GriffinManager {
         CaveCrawlers.getAPI().getItemsAPI().giveItem(player, sandDust, 1);
     }
 
-    public void changeBlock(Player player, Block block, BlockData blockData) {
-        changeBlock(player, block, blockData, 1L);
+    public void changeBlock(Block block, BlockData blockData) {
+        changeBlock(block, blockData, 1L);
     }
 
-    public void changeBlock(Player player, Block block, BlockData blockData, long delay) {
+    public void changeBlock(Block block, BlockData blockData, long delay) {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!player.isOnline() || player.getWorld() != getWorld() || !(player.getLocation().distanceSquared(block.getLocation()) < MAX_DISTANCE_SQUARED)) {
-                    return;
-                }
                 block.setBlockData(blockData);
             }
         }.runTaskLater(GriffinAddon.getInstance(), delay);
