@@ -131,7 +131,11 @@ public class GriffinManager {
         Rarity rarity = itemInfo.getRarity();
         brokenBlocks.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
         double baseChance = 1;
-        if (block.getType() == Material.RED_SAND && rarity.getLevel() >= Rarity.RARE.getLevel()) {
+        if (block.getType() == Material.RED_SAND) {
+            if (rarity.getLevel() < Rarity.RARE.getLevel()) {
+                player.sendMessage(MiniMessageUtils.miniMessage("<red>You need a rare or better spade to mine this block.</red>"));
+                return;
+            }
             baseChance = 2;
         }
         double newDropChance = getNewDropChance(player, baseChance, GriffinAddon.GRIFFIN_LUCK);
