@@ -21,7 +21,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import revxrsal.commands.bukkit.BukkitCommandHandler;
+import revxrsal.commands.bukkit.BukkitLamp;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -86,9 +86,7 @@ public final class GriffinAddon extends JavaPlugin implements Listener {
     }
 
     private void registerCommands() {
-        BukkitCommandHandler commandHandler = BukkitCommandHandler.create(this);
-        commandHandler.register(new GriffinCommand());
-        commandHandler.registerBrigadier();
+        BukkitLamp.builder(this).build().register(new GriffinCommand());
     }
 
     private void registerSerializers() {
