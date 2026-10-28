@@ -71,10 +71,13 @@ tasks.build {
 }
 
 tasks.processResources {
-    val props = mapOf("version" to project.version)
+    val commit = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+    val props = mapOf("version" to "${project.version}+$commit")
     inputs.properties(props)
     filteringCharset = "UTF-8"
     filesMatching("plugin.yml") {
         expand(props)
     }
 }
+
+publishing { publications { create<MavenPublication>("mavenJava") { artifact(tasks.shadowJar) } } }

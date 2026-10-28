@@ -56,6 +56,10 @@ public class GriffinDrop extends Drop implements ConfigurationSerializable {
         if (entity instanceof LivingEntity livingEntity) {
             entityManager.setEntityData(livingEntity.getUniqueId(), new LootShareEntityData(livingEntity, DAMAGE_THRESHOLD_PERCENT, player.getUniqueId()));
         }
+        if (entity != null) {
+            org.bukkit.Bukkit.getPluginManager().callEvent(new me.lidan.griffinAddon.events.GriffinMobSpawnedEvent(
+                    player.getUniqueId(), entity.getUniqueId(), value, entity.getWorld().getName()));
+        }
         return entity;
     }
 

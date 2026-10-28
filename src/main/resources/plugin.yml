@@ -1,5 +1,5 @@
 name: GriffinAddon
-version: '1.0'
+version: '${version}'
 main: me.lidan.griffinAddon.GriffinAddon
 api-version: '1.19'
 authors: [ LidanTheDev ]

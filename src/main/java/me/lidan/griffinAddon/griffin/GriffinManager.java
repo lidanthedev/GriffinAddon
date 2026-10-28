@@ -98,7 +98,9 @@ public class GriffinManager {
 
         GriffinDrops griffinDrops = grffinDropsMap.get(rarity);
         if (griffinDrops == null) return false;
-        griffinDrops.drop(player, dropLoc);
+        String outcome = griffinDrops.dropResolved(player, dropLoc);
+        Bukkit.getPluginManager().callEvent(new me.lidan.griffinAddon.events.GriffinBurrowOpenedEvent(
+                player.getUniqueId(), rarity.name(), outcome, block.getWorld().getName()));
         return true;
     }
 
@@ -150,6 +152,8 @@ public class GriffinManager {
         ItemInfo sandDust = CaveCrawlers.getAPI().getItemsAPI().getItemByID("SAND_DUST");
         if (sandDust == null) return;
         CaveCrawlers.getAPI().getItemsAPI().giveItem(player, sandDust, 1);
+        Bukkit.getPluginManager().callEvent(new me.lidan.griffinAddon.events.GriffinItemGrantedEvent(
+                player.getUniqueId(), sandDust.getID(), 1));
     }
 
     public void changeBlock(Block block, BlockData blockData) {

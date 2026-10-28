@@ -22,12 +22,18 @@ public class GriffinDrops implements ConfigurationSerializable {
     }
 
     public void drop(Player player, Location location){
+        dropResolved(player, location);
+    }
+
+    /** Returns the selected outcome; actual grants retain the Core Drop events. */
+    public String dropResolved(Player player, Location location) {
         for (GriffinDrop drop : drops){
             if (drop.rollChance(player)){
                 drop.drop(player, location);
-                return;
+                return drop.getType().name().toLowerCase(java.util.Locale.ROOT);
             }
         }
+        return "none";
     }
 
 
