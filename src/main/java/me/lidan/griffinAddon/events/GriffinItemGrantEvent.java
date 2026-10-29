@@ -1,11 +1,14 @@
 package me.lidan.griffinAddon.events;
 
-import java.util.UUID;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import java.util.Objects;
+import java.util.UUID;
+
 /** Cancellable request emitted before the corresponding gameplay operation. */
-public final class GriffinItemGrantEvent extends Event implements org.bukkit.event.Cancellable {
+public final class GriffinItemGrantEvent extends Event implements Cancellable {
     private boolean cancelled;
     @Override public boolean isCancelled() { return cancelled; }
     @Override public void setCancelled(boolean cancelled) { this.cancelled = cancelled; }
@@ -14,8 +17,8 @@ public final class GriffinItemGrantEvent extends Event implements org.bukkit.eve
     private final String itemId;
     private final int amount;
     public GriffinItemGrantEvent(UUID playerId, String itemId, int amount) {
-        this.playerId = java.util.Objects.requireNonNull(playerId);
-        this.itemId = java.util.Objects.requireNonNull(itemId);
+        this.playerId = Objects.requireNonNull(playerId);
+        this.itemId = Objects.requireNonNull(itemId);
         this.amount = amount;
     }
     public UUID getPlayerId() { return playerId; }

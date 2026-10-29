@@ -1,8 +1,10 @@
 package me.lidan.griffinAddon.events;
 
-import java.util.UUID;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /** Immutable observation after the corresponding addon operation. */
 public final class GriffinItemGrantedEvent extends Event {
@@ -11,8 +13,8 @@ public final class GriffinItemGrantedEvent extends Event {
     private final String itemId;
     private final int amount;
     public GriffinItemGrantedEvent(UUID playerId, String itemId, int amount) {
-        this.playerId = java.util.Objects.requireNonNull(playerId);
-        this.itemId = java.util.Objects.requireNonNull(itemId);
+        this.playerId = Objects.requireNonNull(playerId);
+        this.itemId = Objects.requireNonNull(itemId);
         this.amount = amount;
     }
     public UUID getPlayerId() { return playerId; }

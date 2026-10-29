@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Data
@@ -30,7 +31,7 @@ public class GriffinDrops implements ConfigurationSerializable {
         for (GriffinDrop drop : drops){
             if (drop.rollChance(player)){
                 drop.drop(player, location);
-                return drop.getType().name().toLowerCase(java.util.Locale.ROOT);
+                return drop.getType().name().toLowerCase(Locale.ROOT);
             }
         }
         return "none";

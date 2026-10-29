@@ -1,8 +1,10 @@
 package me.lidan.griffinAddon.events;
 
-import java.util.UUID;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /** Immutable observation after the corresponding addon operation. */
 public final class GriffinMobSpawnedEvent extends Event {
@@ -12,10 +14,10 @@ public final class GriffinMobSpawnedEvent extends Event {
     private final String mobId;
     private final String world;
     public GriffinMobSpawnedEvent(UUID playerId, UUID entityId, String mobId, String world) {
-        this.playerId = java.util.Objects.requireNonNull(playerId);
-        this.entityId = java.util.Objects.requireNonNull(entityId);
-        this.mobId = java.util.Objects.requireNonNull(mobId);
-        this.world = java.util.Objects.requireNonNull(world);
+        this.playerId = Objects.requireNonNull(playerId);
+        this.entityId = Objects.requireNonNull(entityId);
+        this.mobId = Objects.requireNonNull(mobId);
+        this.world = Objects.requireNonNull(world);
     }
     public UUID getPlayerId() { return playerId; }
     public UUID getEntityId() { return entityId; }
