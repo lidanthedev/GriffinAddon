@@ -71,7 +71,9 @@ tasks.build {
 }
 
 tasks.processResources {
-    val commit = providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+    val commit = runCatching {
+        providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+    }.getOrElse { project.version.toString() }
     val props = mapOf("version" to "${project.version}+$commit")
     inputs.properties(props)
     filteringCharset = "UTF-8"
