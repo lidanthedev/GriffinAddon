@@ -10,6 +10,8 @@ import me.lidan.cavecrawlers.entities.EntityManager;
 import me.lidan.cavecrawlers.entities.LootShareEntityData;
 import me.lidan.cavecrawlers.objects.ConfigMessage;
 import me.lidan.griffinAddon.GriffinAddon;
+import me.lidan.griffinAddon.events.GriffinMobSpawnedEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
@@ -55,6 +57,10 @@ public class GriffinDrop extends Drop implements ConfigurationSerializable {
         Entity entity = super.giveMob(player, location);
         if (entity instanceof LivingEntity livingEntity) {
             entityManager.setEntityData(livingEntity.getUniqueId(), new LootShareEntityData(livingEntity, DAMAGE_THRESHOLD_PERCENT, player.getUniqueId()));
+        }
+        if (entity != null) {
+            Bukkit.getPluginManager().callEvent(new GriffinMobSpawnedEvent(
+                    player.getUniqueId(), entity.getUniqueId(), value, entity.getWorld().getName()));
         }
         return entity;
     }

@@ -15,6 +15,10 @@ import me.lidan.cavecrawlers.utils.MiniMessageUtils;
 import me.lidan.cavecrawlers.utils.RandomUtils;
 import me.lidan.griffinAddon.GriffinAddon;
 import me.lidan.griffinAddon.abilities.SpadeAbility;
+import me.lidan.griffinAddon.events.GriffinBurrowOpenEvent;
+import me.lidan.griffinAddon.events.GriffinBurrowOpenedEvent;
+import me.lidan.griffinAddon.events.GriffinItemGrantEvent;
+import me.lidan.griffinAddon.events.GriffinItemGrantedEvent;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -78,9 +82,10 @@ public class GriffinManager {
 
     public boolean handleGriffinBreak(Player player, Block block) {
         Location loc = block.getLocation();
-        griffinMap.remove(player.getUniqueId());
         Rarity rarity = RARITY_TO_BLOCK_MAP.inverse().get(block.getBlockData());
         if (rarity == null) return false;
+        GriffinDrops griffinDrops = grffinDropsMap.get(rarity);
+        if (griffinDrops == null) return false;
         Location dropLoc = block.getLocation().add(0, 2, 0);
         GriffinBrokenBlockInfo removedBlockInfo = brokenBlocks.get(loc);
         if (removedBlockInfo != null) {
@@ -90,15 +95,20 @@ public class GriffinManager {
                 player.sendMessage(MiniMessageUtils.miniMessage("<red><bold>You cannot break this block now! </bold><gold>try again in <remaining_seconds> seconds!", Map.of("remaining_seconds", remainingTime / 1000)));
                 return false;
             }
+        }
+        if (!new GriffinBurrowOpenEvent(
+                player.getUniqueId(), rarity.name(), block.getWorld().getName()).callEvent()) return false;
+        griffinMap.remove(player.getUniqueId());
+        if (removedBlockInfo != null) {
             loc.getBlock().setBlockData(removedBlockInfo.blockData());
             brokenBlocks.remove(loc);
         } else {
             loc.getBlock().setType(Material.SAND);
         }
 
-        GriffinDrops griffinDrops = grffinDropsMap.get(rarity);
-        if (griffinDrops == null) return false;
-        griffinDrops.drop(player, dropLoc);
+        String outcome = griffinDrops.dropResolved(player, dropLoc);
+        Bukkit.getPluginManager().callEvent(new GriffinBurrowOpenedEvent(
+                player.getUniqueId(), rarity.name(), outcome, block.getWorld().getName()));
         return true;
     }
 
@@ -129,7 +139,6 @@ public class GriffinManager {
         if (itemInfo == null) return;
         if (!(itemInfo.getAbility() instanceof SpadeAbility)) return;
         Rarity rarity = itemInfo.getRarity();
-        brokenBlocks.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
         double baseChance = 1;
         if (block.getType() == Material.RED_SAND) {
             if (rarity.getLevel() < Rarity.RARE.getLevel()) {
@@ -138,6 +147,10 @@ public class GriffinManager {
             }
             baseChance = 2;
         }
+        ItemInfo sandDust = CaveCrawlers.getAPI().getItemsAPI().getItemByID("SAND_DUST");
+        if (sandDust != null && !new GriffinItemGrantEvent(
+                player.getUniqueId(), sandDust.getID(), 1).callEvent()) return;
+        brokenBlocks.put(block.getLocation(), new GriffinBrokenBlockInfo(player, block.getBlockData(), System.currentTimeMillis()));
         double newDropChance = getNewDropChance(player, baseChance, GriffinAddon.GRIFFIN_LUCK);
         if (RandomUtils.chanceOf(newDropChance)) {
             changeBlock(block, RARITY_TO_BLOCK_MAP.get(rarity));
@@ -147,9 +160,10 @@ public class GriffinManager {
             changeBlock(block, block.getBlockData(), 20L * 2);
         }
         CaveCrawlers.getAPI().getSkillsAPI().tryGiveXp(SkillAction.MINE, block.getType().toString(), player);
-        ItemInfo sandDust = CaveCrawlers.getAPI().getItemsAPI().getItemByID("SAND_DUST");
         if (sandDust == null) return;
         CaveCrawlers.getAPI().getItemsAPI().giveItem(player, sandDust, 1);
+        Bukkit.getPluginManager().callEvent(new GriffinItemGrantedEvent(
+                player.getUniqueId(), sandDust.getID(), 1));
     }
 
     public void changeBlock(Block block, BlockData blockData) {

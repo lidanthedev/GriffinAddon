@@ -26,9 +26,9 @@ dependencies {
     compileOnly("org.jetbrains:annotations:23.0.0")
     compileOnly("me.lidan:CaveCrawlers:dev") // use the mavenLocal version of CaveCrawlers
     compileOnly("io.lumine:Mythic-Dist:5.3.5")
-    implementation("com.github.lidanthedev.Lamp:common:3.3.7")
-    implementation("com.github.lidanthedev.Lamp:brigadier:3.3.7")
-    implementation("com.github.lidanthedev.Lamp:bukkit:3.3.7")
+    implementation("io.github.revxrsal:lamp.common:4.0.0")
+    implementation("io.github.revxrsal:lamp.brigadier:4.0.0")
+    implementation("io.github.revxrsal:lamp.bukkit:4.0.0")
     implementation("fr.skytasul:glowingentities:1.4.10")
 }
 
@@ -71,10 +71,15 @@ tasks.build {
 }
 
 tasks.processResources {
-    val props = mapOf("version" to project.version)
+    val commit = runCatching {
+        providers.exec { commandLine("git", "rev-parse", "--short", "HEAD") }.standardOutput.asText.get().trim()
+    }.getOrElse { project.version.toString() }
+    val props = mapOf("version" to "${project.version}+$commit")
     inputs.properties(props)
     filteringCharset = "UTF-8"
     filesMatching("plugin.yml") {
         expand(props)
     }
 }
+
+publishing { publications { create<MavenPublication>("mavenJava") { artifact(tasks.shadowJar) } } }
